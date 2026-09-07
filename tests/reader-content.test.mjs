@@ -1,0 +1,22 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import ts from 'typescript';
+import {JSDOM} from 'jsdom';
+const dom=new JSDOM('',{url:'https://reader.example.com'});
+globalThis.window=dom.window;globalThis.document=dom.window.document;globalThis.DOMParser=dom.window.DOMParser;
+const root=path.resolve('.sites-runtime/reader-tests');fs.mkdirSync(root,{recursive:true});
+for(const name of ['article-client','rsshub']){const source=fs.readFileSync(`lib/${name}.ts`,'utf8');fs.writeFileSync(`${root}/${name}.mjs`,ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022}}).outputText);}
+const {extractArticle,safeMarkup,discoverFeeds}=await import(`${root}/article-client.mjs`);
+const {rsshubUrl}=await import(`${root}/rsshub.mjs`);
+const para='这是一段公开文章正文，介绍了如何在阅读器中保留完整段落、图片和列表，供用户阅读、翻译和理解。'.repeat(8);
+test('publisher extraction keeps headings, lists, lazy images, final paragraph and excludes comments',()=>{const result=extractArticle(`<main><div class="article__main__content"><h2>章节</h2><p>${para}</p><ul><li>列表项</li></ul><img data-src="/photo.jpg" onerror="alert(1)"><p>正文最终段落。</p></div><div class="comments">不属于正文的评论</div></main>`,'https://sspai.com/post/1');assert.match(result.text,/正文最终段落/);assert.doesNotMatch(result.text,/评论/);assert.match(result.html,/<h2>/);assert.match(result.html,/https:\/\/sspai.com\/photo.jpg/);assert.doesNotMatch(result.html,/onerror/);});
+test('WeChat js_content extraction supports section blocks and data-src',()=>{const result=extractArticle(`<div id="js_content"><section><p>${para}</p><img data-src="https://mmbiz.qpic.cn/example.jpg"></section></div>`,'https://mp.weixin.qq.com/s/example');assert.match(result.text,/完整段落/);assert.match(result.html,/mmbiz.qpic.cn/);});
+test('Readability extracts generic article',()=>{const result=extractArticle(`<html><head><title>Test article</title></head><body><nav>Navigation</nav><article><h1>Test article</h1><p>${para}</p><p>${para}</p></article><footer>Footer</footer></body></html>`,'https://news.example.com/post');assert.ok(result.text.length>200);assert.doesNotMatch(result.text,/Navigation|Footer/);});
+test('untrusted HTML removes executable content, unsafe URLs and hidden overlays',()=>{const safe=safeMarkup('<script>alert(1)</script><iframe src="https://bad.example"></iframe><a href="javascript:alert(1)">x</a><img src="x" onerror="alert(1)"><div style="position:fixed" onclick="alert(1)">text</div><svg onload="alert(1)"></svg>','https://news.example.com/post');assert.doesNotMatch(safe,/<script|<iframe|javascript:|onerror|onclick|onload|<svg|position:fixed/);});
+test('feed discovery and RSSHub routing preserve query and instance subpath',()=>{assert.deepEqual(discoverFeeds('<link type="application/rss+xml" href="/feed" title="Feed">','https://sspai.com/post/1'),[{url:'https://sspai.com/feed',title:'Feed'}]);assert.equal(rsshubUrl('https://hub.example.com/rss','rsshub://sspai/index?limit=10'),'https://hub.example.com/rss/sspai/index?limit=10');assert.throws(()=>rsshubUrl('https://hub.example.com','//evil.example.com'));assert.throws(()=>rsshubUrl('http://hub.example.com','/sspai/index'));});
+const saved='/tmp/reader-sspai.html';
+if(fs.existsSync(saved))test('live-fetched SSPAI article includes its published ending',()=>{const result=extractArticle(fs.readFileSync(saved,'utf8'),'https://sspai.com/post/71637');assert.match(result.text,/NetNewsWire/);assert.ok(result.text.length>1000);});
+test('lazy images retain usable addresses and discard srcset after normalization',()=>{const html=safeMarkup('<img data-original="/original.jpg"><img src="placeholder.gif" data-srcset="/large.jpg 2x, /small.jpg 1x">','https://news.example.com/list');assert.match(html,/https:\/\/news.example.com\/original.jpg/);assert.match(html,/https:\/\/news.example.com\/large.jpg/);assert.doesNotMatch(html,/srcset|data-original/);});
+test('website rules resolve links, deduplicate and reject script URLs',async()=>{const {websiteItems}=await import(`${root}/article-client.mjs`);assert.deepEqual(websiteItems('<article><h2><a href="/a">Article A</a></h2></article><article><h2><a href="/a">Again</a></h2></article><article><h2><a href="javascript:alert(1)">Bad</a></h2></article>','https://news.example.com/list','article h2 a'),[{url:'https://news.example.com/a',title:'Article A'}]);assert.throws(()=>websiteItems('','https://news.example.com','['));});
