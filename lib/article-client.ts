@@ -13,7 +13,7 @@ export function extractArticle(html:string,url:string):{text:string;html:string}
  let body='';const host=new URL(url).hostname;
  const specific=host==='sspai.com'||host.endsWith('.sspai.com')?d.querySelector('.article__main__content'):host==='mp.weixin.qq.com'?d.querySelector('#js_content'):null;
  if(specific&&(specific.textContent?.trim().length||0)>80){body=specific.innerHTML;}
- else{const base=d.createElement('base');base.href=url;d.head.prepend(base);const article=new Readability(d,{charThreshold:100,maxElemsToParse:35000}).parse();body=article?.content||'';}
+ else{const base=d.createElement('base');base.href=url;d.head.prepend(base);const article=new Readability(d,{charThreshold:100,maxElemsToParse:35000,keepClasses:true}).parse();body=article?.content||'';}
  if(!body)throw new Error('未找到公开正文。网页可能需要登录、付费、浏览器验证，或通过脚本加载。');
  const sanitized=safeMarkup(body,url),text=textOf(sanitized);
  if(text.length<80)throw new Error('网页可读取的内容过少，已保留 RSS 内容');
