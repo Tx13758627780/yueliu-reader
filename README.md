@@ -34,7 +34,9 @@ npm run selfhost:dev
 
 1. 安装依赖：`npm ci`。
 2. 登录你自己的 Cloudflare：`npx wrangler login`。
-3. 执行 `npm run selfhost:deploy`，脚本先构建，再发布到你账号中的 `yueliu-reader` Worker。
+3. 创建笔记数据库 `npx wrangler d1 create yueliu-notes`，创建录音桶 `npx wrangler r2 bucket create yueliu-notes`（需要账号已启用 R2）。
+4. 设置环境变量 `YUELIU_D1_ID` 为上一步返回的数据库 ID；如使用其他桶名，设置 `YUELIU_R2_BUCKET`。
+5. 执行 `npm run selfhost:deploy`，脚本先构建、应用笔记表迁移，再发布到你账号中的 `yueliu-reader` Worker。
 4. 访问命令返回的地址，配置订阅和 AI。
 
 只构建、不发布：
@@ -93,3 +95,11 @@ npm run test:reader
 - `scripts/selfhost.mjs`：自行部署命令。
 
 `.openai/hosting.json`、`build/sites-vite-plugin.ts` 和原 `build` 命令保留用于 ChatGPT Sites。自行部署使用 `selfhost:*`，无需原 Sites 账号或其发布凭证。第三方组件保留各自的许可证，详见对应 npm 包及 vendor 目录。
+
+## 文章笔记与沉浸阅读
+
+- 选词后可添加下划线、文字、手写草稿和录音，也可继续引用问 AI。一条笔记可同时包含三种附件内容。
+- Apple Pencil 使用「笔划标记」从文字开头划到结尾选中片段。该模式暂停正文滚动，关闭即可继续阅读。草稿纸支持笔色、粗细、撤销；默认忽略触摸落笔，可开启手指书写。
+- 录音需要 HTTPS 和麦克风授权，最长 5 分钟／12 MB；不支持录音的浏览器可以上传音频。
+- 笔记元数据和矢量笔画存 D1，录音存 R2；各请求按随机 HttpOnly Cookie 凭证隔离，Cookie 原文不写入数据库。服务器保存可跨刷新使用，但不是账号同步。清除网站 Cookie、换设备或一年凭证过期后不能访问原笔记；请不要将此版本当作唯一重要笔记存档。
+- 沉浸模式隐藏订阅和文章列表，可调整 16–32 px 正文字号。系统全屏取决于浏览器支持，iPad 不支持时仍使用铺满页面的沉浸模式。

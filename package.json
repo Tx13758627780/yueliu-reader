@@ -16,7 +16,7 @@
     "selfhost:dev": "node scripts/selfhost.mjs dev",
     "selfhost:build": "node scripts/selfhost.mjs build",
     "selfhost:deploy": "node scripts/selfhost.mjs deploy",
-    "test:reader": "node --test tests/reader-content.test.mjs tests/rsshub-instances.test.mjs tests/reader-ai.test.mjs tests/reader-integrations.test.mjs"
+    "test:reader": "node --test tests/reader-content.test.mjs tests/rsshub-instances.test.mjs tests/reader-ai.test.mjs tests/reader-integrations.test.mjs tests/reader-notes.test.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",

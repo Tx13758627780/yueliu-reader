@@ -19,8 +19,9 @@ const localBindingConfig = {
     ? [
         {
           binding: d1,
-          database_name: "site-creator-d1",
-          database_id: SITE_CREATOR_PLACEHOLDER_DATABASE_ID,
+          database_name: selfHost ? "yueliu-notes" : "site-creator-d1",
+          migrations_dir: "drizzle",
+          database_id: selfHost ? (process.env.YUELIU_D1_ID || SITE_CREATOR_PLACEHOLDER_DATABASE_ID) : SITE_CREATOR_PLACEHOLDER_DATABASE_ID,
         },
       ]
     : [],
@@ -28,7 +29,7 @@ const localBindingConfig = {
     ? [
         {
           binding: r2,
-          bucket_name: "site-creator-r2",
+          bucket_name: selfHost ? (process.env.YUELIU_R2_BUCKET || "yueliu-notes") : "site-creator-r2",
         },
       ]
     : [],
