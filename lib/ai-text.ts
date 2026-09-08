@@ -1,6 +1,6 @@
 export function translationChunks(text:string,limit=3000){
  const chunks:string[]=[];let rest=text;
- while(rest.length>limit){let end=rest.lastIndexOf('\n',limit);if(end<limit/2)end=limit;if(end===limit&&/[\uD800-\uDBFF]/.test(rest[end-1]))end--;chunks.push(rest.slice(0,end));rest=rest.slice(end);}
+ while(rest.length>limit){let end=rest.lastIndexOf('\n',limit);if(end<limit/2){const stops=[...rest.slice(0,limit).matchAll(/[。！？.!?](?:\s|$)/g)];end=stops.length?(stops[stops.length-1].index||0)+stops[stops.length-1][0].length:0;if(end<limit/2){const space=rest.lastIndexOf(' ',limit-1);end=space>=limit/2?space+1:limit;}}if(end===limit&&/[\uD800-\uDBFF]/.test(rest[end-1]))end--;chunks.push(rest.slice(0,end));rest=rest.slice(end);}
  if(rest)chunks.push(rest);return chunks;
 }
 export function completionText(data:any){

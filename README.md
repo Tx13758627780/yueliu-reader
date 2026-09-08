@@ -10,7 +10,10 @@
 - 原文 / 译文切换，逐段翻译进度、停止生成、保留部分译文和明确错误提示。
 - 选中文字后点击「引用问 AI」，可单独提问并携带附近上下文。
 - Mozilla Readability + 少数派 / 微信专用正文识别，DOMPurify 清理外部 HTML。
+- 独立翻译服务：Google Cloud Translation Basic、DeepL API Free / Pro、AI 翻译，支持目标语言与表达风格。
 - 自定义 OpenAI 兼容 API，支持 OpenRouter，可搜索的模型列表和连接测试。
+- 44 个内置 Feed，按主题与语言搜索、多选批量添加，已订阅列表可按分区筛选。
+- B 站专区：UP 主搜索、热门 / 榜单视频作者、UID / 主页链接，RSSHub 视频与图文订阅。
 - RSSHub 实例与路由配置，公众号搜狗来源和已有公众号 RSS 接入。
 - 公共实例名单刷新、按当前路由实时检测和选择；官网不可达时使用带日期的快照，并重新检测。
 
@@ -57,6 +60,20 @@ npm run selfhost:build
 - 原网页提取不绕过付费、登录或验证码，图片也可能被原站防盗链限制。
 - RSSHub 接入连接外部实例，不在 Worker 中运行完整 RSSHub。公众号服务、登录和 Cookie 需要由所选上游配置。
 - 公共实例检测表示指定路由在指定时间返回有效 RSS/Atom/JSON Feed，不代表所有路由始终可用。
+
+### 翻译服务与 B 站
+
+在文章上方点击翻译服务设置，分别填写 Google Cloud Translation API Key 或 DeepL API Key；传统翻译不需要 AI 模型。DeepL 网页版 Pro 与 DeepL API 是不同服务，请选择匹配密钥的 Free / Pro 端点。可先用「测试翻译」验证。默认翻译密钥仅留在浏览器会话；勾选记住后保存到本地。
+
+Google 使用官方神经翻译；AI 会参考相邻片段并遵循风格提示，DeepL 使用上下文、质量优先模式和自定义表达要求。翻译不保证没有误差。
+
+B 站实时查询使用公开网站接口，可能返回风控错误；不伪造热门结果。入门推荐是编辑列表。UID / 主页链接订阅依赖所选 RSSHub 实例，部分实例需要配置 B 站 Cookie；本应用不会代为获取登录信息。Feed 目录在添加时验证可读性，不表示所有上游永久可用。
+
+接口参考：
+
+- https://docs.cloud.google.com/translate/docs/reference/rest/v2/translate
+- https://developers.deepl.com/api-reference/translate/request-translation
+- https://github.com/DIYgod/RSSHub/tree/master/lib/routes/bilibili
 
 ## 测试
 

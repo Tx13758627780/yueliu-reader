@@ -1,0 +1,6 @@
+export type TranslationConfig={provider:'ai'|'google'|'deepl';target:string;style:'natural'|'faithful';googleKey:string;deeplKey:string;deeplPlan:'free'|'pro';remember:boolean};
+export const translationDefaults:TranslationConfig={provider:'ai',target:'简体中文',style:'natural',googleKey:'',deeplKey:'',deeplPlan:'free',remember:false};
+export const translationNames={ai:'AI 翻译',google:'Google 翻译',deepl:'DeepL'};
+export const translationLanguages=['简体中文','繁體中文','English','日本語','한국어','Deutsch','Français','Español'];
+export function targetCode(target:string,provider:string){const codes:Record<string,[string,string]>={'简体中文':['zh-CN','ZH-HANS'],'繁體中文':['zh-TW','ZH-HANT'],English:['en','EN'],日本語:['ja','JA'],한국어:['ko','KO'],Deutsch:['de','DE'],Français:['fr','FR'],Español:['es','ES']};if(!codes[target])throw new Error('请选择支持的目标语言');return codes[target][provider==='deepl'?1:0];}
+export function decodeTranslation(text:string){return text.replace(/&(#x[0-9a-f]+|#\d+|amp|lt|gt|quot|apos);/gi,(_,code:string)=>{const known:Record<string,string>={amp:'&',lt:'<',gt:'>',quot:'"',apos:"'"};if(code[0]!=='#')return known[code.toLowerCase()]||_;const n=code[1].toLowerCase()==='x'?parseInt(code.slice(2),16):parseInt(code.slice(1),10);return n>0&&n<=0x10ffff?String.fromCodePoint(n):_;});}

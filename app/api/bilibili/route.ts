@@ -1,0 +1,7 @@
+import {safeFetch,limitedText} from '@/lib/remote';
+import {biliCreators} from '@/lib/bilibili';
+export async function GET(req:Request){try{
+ const p=new URL(req.url).searchParams;const mode=p.get('mode')||'search';if(!['search','popular','ranking'].includes(mode))throw new Error('不支持的 B 站查询');const keyword=(p.get('q')||'').trim();if(mode==='search'&&(!keyword||keyword.length>60))throw new Error('请输入 1 至 60 字的 UP 主名称');
+ const url=mode==='search'?'https://api.bilibili.com/x/web-interface/search/type?search_type=bili_user&order=fans&page=1&keyword='+encodeURIComponent(keyword):mode==='ranking'?'https://api.bilibili.com/x/web-interface/ranking/v2?rid=0&type=all':'https://api.bilibili.com/x/web-interface/popular?ps=30&pn=1';
+ const r=await safeFetch(url,{signal:AbortSignal.any([req.signal,AbortSignal.timeout(15000)]),headers:{Accept:'application/json',Referer:'https://www.bilibili.com/','User-Agent':'YueliuReader/1.3'}});if(!r.ok)throw new Error(`B 站暂时拒绝读取（HTTP ${r.status}）`);let data:any;try{data=JSON.parse(await limitedText(r,2000000));}catch{throw new Error('B 站返回了验证页，请稍后重试');}if(data.code!==0)throw new Error(`B 站未开放本次查询（${data.code}）：${String(data.message||'请求受限').slice(0,100)}`);return Response.json({creators:biliCreators(data.data,mode),mode,at:new Date().toISOString()},{headers:{'Cache-Control':'private, max-age=120'}});
+ }catch(e){const message=e instanceof Error?e.message:'读取失败';return Response.json({error:/timeout|timed out|aborted/i.test(message)?'B 站请求超时，请稍后重试':message},{status:400,headers:{'Cache-Control':'no-store'}});}}
