@@ -38,12 +38,12 @@
       "target": [
         "nsis",
         "portable"
-      ],
-      "artifactName": "Yueliu-Reader-${version}-${arch}-${target}.${ext}"
+      ]
     },
     "nsis": {
       "oneClick": false,
-      "allowToChangeInstallationDirectory": true
+      "allowToChangeInstallationDirectory": true,
+      "artifactName": "Yueliu-Reader-${version}-${arch}-setup.exe"
     },
     "portable": {
       "artifactName": "Yueliu-Reader-${version}-${arch}-portable.exe"
