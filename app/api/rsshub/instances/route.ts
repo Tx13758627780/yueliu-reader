@@ -1,9 +1,8 @@
 import {safeFetch,limitedText} from '@/lib/remote';
-import {parseInstanceTables,INSTANCE_SNAPSHOT,INSTANCES_SOURCE,SNAPSHOT_SOURCE,SNAPSHOT_DATE} from '@/lib/rsshub-instances';
+import {parseInstanceTables,parseInstanceSource,mergeInstances,COMMUNITY_INSTANCES,INSTANCE_SNAPSHOT,INSTANCES_SOURCE,INSTANCES_CODE_SOURCE,SNAPSHOT_SOURCE,SNAPSHOT_DATE} from '@/lib/rsshub-instances';
 export async function GET(){
- const sources=[INSTANCES_SOURCE,'https://docs.rsshub.app/zh/guide/instances'];
- const results=await Promise.allSettled(sources.map(async source=>{const r=await safeFetch(source,{signal:AbortSignal.timeout(10000),headers:{Accept:'text/html','Cache-Control':'no-cache'}});if(!r.ok)throw new Error(`HTTP ${r.status}`);const instances=parseInstanceTables(await limitedText(r,2500000));if(!instances.length)throw new Error('文档未返回可识别的实例表格');return {instances,source};}));
- const success=results.find(r=>r.status==='fulfilled');
- if(success?.status==='fulfilled')return Response.json({...success.value,fresh:true,fetchedAt:new Date().toISOString()},{headers:{'Cache-Control':'no-store'}});
- return Response.json({instances:INSTANCE_SNAPSHOT,source:SNAPSHOT_SOURCE,fresh:false,snapshotDate:SNAPSHOT_DATE,fetchedAt:new Date().toISOString(),warning:'官网名单暂时无法更新，使用文档镜像快照；下面的可用性仍会逐个实时检测。'},{headers:{'Cache-Control':'no-store'}});
+ const sources=[INSTANCES_SOURCE,'https://docs.rsshub.app/zh/guide/instances',INSTANCES_CODE_SOURCE];
+ const results=await Promise.allSettled(sources.map(async source=>{const r=await safeFetch(source,{signal:AbortSignal.timeout(10000),headers:{Accept:source===INSTANCES_CODE_SOURCE?'text/plain':'text/html','Cache-Control':'no-cache'}});if(!r.ok)throw new Error(`HTTP ${r.status}`);const text=await limitedText(r,2500000),instances=source===INSTANCES_CODE_SOURCE?parseInstanceSource(text):parseInstanceTables(text);if(!instances.length)throw new Error('名单格式暂时无法识别');return {instances,source};}));
+ const success=results.flatMap(r=>r.status==='fulfilled'?[r.value]:[]),community=COMMUNITY_INSTANCES.filter(r=>r.expires>=new Date().toISOString().slice(0,10));
+ return Response.json({instances:mergeInstances([{url:'https://rsshub.app',location:'美国',maintainer:'DIYgod'}],...(success.length?success.map(s=>s.instances):[INSTANCE_SNAPSHOT]),community),source:success[0]?.source||SNAPSHOT_SOURCE,sources:[...success.map(r=>r.source),...community.map(r=>r.source)],fresh:!!success.length,snapshotDate:success.length?undefined:SNAPSHOT_DATE,fetchedAt:new Date().toISOString(),warning:success.length?undefined:'官网与源码暂时无法更新，使用已有快照；可用性仍逐个实时检测。'},{headers:{'Cache-Control':'no-store'}});
 }

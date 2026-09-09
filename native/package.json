@@ -1,0 +1,52 @@
+{
+  "name": "yueliu-reader-desktop",
+  "version": "0.2.0",
+  "description": "阅流离线阅读与自由笔记",
+  "private": true,
+  "license": "GPL-3.0-only",
+  "author": "Yueliu contributors",
+  "main": "electron/main.cjs",
+  "scripts": {
+    "start": "electron .",
+    "pack:win": "electron-builder --win nsis portable --x64 --publish never",
+    "android:sync": "cap sync android"
+  },
+  "dependencies": {
+    "@capacitor/core": "8.5.1",
+    "@capacitor/android": "8.5.1"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "8.5.1",
+    "electron": "44.3.0",
+    "electron-builder": "26.15.3"
+  },
+  "build": {
+    "appId": "app.yueliu.reader",
+    "productName": "Yueliu Reader",
+    "directories": {
+      "output": "releases"
+    },
+    "files": [
+      "www/**",
+      "electron/**",
+      "package.json",
+      "LICENSE",
+      "THIRD_PARTY.md"
+    ],
+    "asar": true,
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ],
+      "artifactName": "Yueliu-Reader-${version}-${arch}-${target}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    },
+    "portable": {
+      "artifactName": "Yueliu-Reader-${version}-${arch}-portable.exe"
+    }
+  }
+}

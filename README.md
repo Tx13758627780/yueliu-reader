@@ -113,3 +113,52 @@ Folo 部分参考其内容分区、OPML 预览导入、正文 Readability 和字
 笔记+ 部分参考其阅读与草稿并排的交互，自行实现浏览器版：统一选词操作栏、正文四种标记、文字编辑、多页草稿、钢笔／荧光笔／橡皮／套索移动、撤销／重做、纸张样式和缩放、录音。并非嵌入笔记+软件，不包含其原生 iCloud、PDF 引擎或系统级手写能力。默认隔离各本笔记，恢复码提供跨设备访问；同时编辑时最后保存生效。
 
 查看 `THIRD_PARTY.md` 获取来源与许可证说明。项目按 GPL-3.0 开放源码，第三方依赖遵循各自许可证。
+
+## 外观、自由笔记与引用
+
+侧栏的「外观与色调」支持主题色、纸张底色和夜读模式，设置按设备保存。移动端订阅标签改为独立网格，按钮高度随文字增长，避免标签换行重叠。
+
+「自由笔记」提供 A4 竖向（794×1123）、A4 横向、大画布和超大画布。支持文字卡片、手写、橡皮、缩放、拖动画布、撤销和重做，卡片之间可连线并填写关系说明。画布先写入 IndexedDB；网页版在联网后同步到原有笔记本。A4 表示画布比例与 96 dpi 尺寸，屏幕上的实际毫米数取决于设备和缩放。
+
+文章工具栏、划词菜单和已保存笔记都有「复制链接」。自由笔记也可复制整本或单张卡片的链接。在画布点「引用」，可搜索文章、文章笔记、其他画布，或粘贴片段链接。同一篇来源可在多张卡片中重复引用。链接只用于定位，不会公开私人笔记或授予笔记本访问权。其他设备需导入备份或恢复同一本笔记本；文章未缓存时需要联网提取。
+
+## 离线使用和备份
+
+网页版准备好离线页面后，再次打开可离线阅读。支持离线创建 / 编辑文字、手写、录音和自由笔记。订阅列表、文章正文和译文改为 IndexedDB 存储，兼容读取旧版本浏览器记录。点击文章上的「离线保存」下载图片与已有录音；视频流、播客音频不会自动整段下载。缓存仅包含网站已公开并成功读取的内容。
+
+侧栏「离线与客户端」显示联网状态和笔记同步情况，也可导出 / 导入 JSON 备份。备份包含文章、译文和已下载录音，**不含 API 密钥和文章图片**。导入时按稳定 ID 合并，本机较新的笔记保留。离线副本不能替代备份；卸载客户端或清除网站数据会移除本机数据。
+
+联网功能包括刷新 RSS、下载新文章、外部 AI、Google / DeepL 翻译。此项目不内置离线大模型或离线机器翻译引擎。
+
+## Windows EXE 和 Android APK
+
+客户端加载随安装包内置的网页，不依赖远程首页，也可在首次启动时断网创建笔记。原生客户端的笔记独立保存在设备上，用备份和网页版互相迁移；目前不自动同步原生客户端笔记到云端。
+
+GitHub Actions 的 **Windows EXE and Android APK** 工作流在相关代码推送到 main 时运行，也可从 Actions → Run workflow 手动触发。成功后下载该次任务下的 `Yueliu-Windows-EXE` 和 `Yueliu-Android-APK` artifacts。不要将配置文件或尚在运行的任务当成已生成的安装包。
+
+- Windows：NSIS 安装 EXE 和便携 EXE。未配置商业代码签名证书，系统可能显示发布者未知。
+- Android：可自行安装的 debug APK。面向自己测试，不作为应用商店 release 签名包；更新前先备份，换构建机器的 debug 签名可能不同。
+
+本机打包需要 Node.js 22.13+，Android 还需要 Java 21 和 Android SDK，Windows 打包建议在 Windows 运行。
+
+```bash
+npm ci
+npm ci --prefix native
+npm run desktop:windows
+# Windows 输出：native/releases/
+
+npm run android:prepare
+cd native/android
+./gradlew assembleDebug
+# Android 输出：app/build/outputs/apk/debug/app-debug.apk
+```
+
+`npm run desktop:dev` 启动桌面开发客户端。Windows 包包含独立的 Node API 适配层，用于 RSS / Bilibili / AI 等在线访问；不依赖托管站点。Android 在线请求通过 Capacitor 的原生 HTTP 能力访问设置中的阅流 HTTPS 服务，可改成自己的部署。原生网页仅运行打包脚本；Electron 禁用 Node 集成并启用隔离和沙箱，外部链接交给系统浏览器。
+
+## RSSHub 实例与个人设备
+
+实例目录汇总官方网页、[官方名单源码](https://github.com/RSSNext/rsshub-docs/blob/main/.vitepress/theme/components/InstanceList.vue)及明确对外开放的社区节点，并保留节点路径前缀。名单来自来源记录，不代表服务健康；必须按所选路由逐个测试。可搜索域名、地区、维护者，批量导入 / 导出个人实例（每行一个地址）。Kael 社区节点按维护者公告在 2026-12-31 后不再加入动态名单。
+
+Windows 客户端中，在 RSSHub 页面展开「把这台设备变成 RSSHub 实例」。先安装并启动 Docker Desktop，然后点「一键启用本机实例」。应用启动独立的 `diygod/rsshub:chromium-bundled` 容器，使用固定的应用标签识别自己创建的容器，不会覆盖其他同名容器。默认仅绑定 `127.0.0.1:1200`，不会自动将设备公开到互联网；可停止或重新使用。
+
+网页版提供 Windows 和 Linux / macOS 启动脚本。Android 提供 Termux 安装脚本（需要网络与 Node 环境，受 RSSHub 上游依赖兼容性影响，不包含 Chromium）；APK 不内嵌 RSSHub 后台进程。云端服务无法访问用户设备的 localhost。Android 的原生客户端支持连接同机 `http://127.0.0.1:1200`；远程 / 跨设备实例需自行配置公网 HTTPS 地址。需要登录、Cookie 或浏览器的路由仍需在 RSSHub 端配置。

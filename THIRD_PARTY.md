@@ -20,3 +20,6 @@
 
 ## Other dependencies
 Mozilla Readability, DOMPurify, React, Lucide and remaining npm dependencies retain their own licenses. See package metadata and installed dependency LICENSE files.
+
+- Electron and electron-builder: desktop runtime and installer tools, original project licenses apply. Capacitor: Android runtime and native HTTP bridge. No remote Node integration is enabled.
+- RSSHub remains a separate, user-started Docker / Termux service; this reader does not bundle RSSHub server source or claim all routes work. Official instance data is read from RSSNext/rsshub-docs `.vitepress/theme/components/InstanceList.vue`. Additional Kael instance source: https://github.com/dreamingms/kael-public-services (announced expiry 2026-12-31).

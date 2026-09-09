@@ -4,6 +4,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "阅流 · RSS AI 阅读器",
   description: "订阅、阅读、翻译，用你自己的 AI 看懂世界。",
+  manifest: "/manifest.webmanifest",
   other: {
     "codex-preview": "development",
   },

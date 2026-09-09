@@ -1,0 +1,10 @@
+import {parseFeed} from './feed-reader';
+export function isNative(){return typeof window!=='undefined'&&!!(window as any).__YUELIU_NATIVE__;}
+export function serviceBase(){if(!isNative())return '';try{return (localStorage.getItem('yueliu-service')||'https://streamleaf-reader.zhangyitz.chatgpt.site').replace(/\/$/,'');}catch{return '';}}
+export function apiUrl(path:string){return path.startsWith('/api/')?serviceBase()+path:path;}
+export async function apiFetch(url:string,options?:RequestInit):Promise<Response>{
+ const bridge=typeof window!=='undefined'?(window as any).yueliuDesktop:undefined;
+ if(bridge&&url.startsWith('/api/')){const r=await bridge.request({url,method:options?.method||'GET',body:typeof options?.body==='string'?options.body:undefined});if(options?.signal?.aborted)throw options.signal.reason;return new Response(Uint8Array.from(atob(r.body),(c:string)=>c.charCodeAt(0)),{status:r.status,headers:r.headers});}
+ if(isNative()&&!bridge&&(url.startsWith('/api/feed?')||url==='/api/rsshub/probe')){const args=url==='/api/rsshub/probe'?JSON.parse(String(options?.body||'{}')):null;const raw=args?.instance||new URL(url,location.href).searchParams.get('url')||'';const u=new URL(raw);if(u.protocol==='http:'&&['127.0.0.1','localhost'].includes(u.hostname)&&u.port==='1200'&&!u.username&&!u.password){const target=args?new URL(u.href.replace(/\/$/,'')+args.route):u;if(target.origin!==u.origin)throw new Error('无效路由');const start=Date.now(),r=await fetch(target.href,{signal:options?.signal||AbortSignal.timeout(25000)});if(!r.ok)throw new Error('本机实例返回 HTTP '+r.status);const text=await r.text();return Response.json(args?{ok:true,count:parseFeed(text,target.href).items.length,ms:Date.now()-start,checkedAt:new Date().toISOString()}:{text,url:target.href});}}
+ return fetch(apiUrl(url),options);
+}

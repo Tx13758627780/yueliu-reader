@@ -1,4 +1,5 @@
 'use client';
+import {apiFetch} from '@/lib/api-client';
 import {useState} from 'react';
 import {Search,Plus,Check,Loader2} from 'lucide-react';
 import {feedCatalog,feedCategories,searchCatalog,type CatalogFeed} from '@/lib/feed-catalog';

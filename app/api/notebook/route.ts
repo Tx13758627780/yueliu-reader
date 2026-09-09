@@ -1,4 +1,4 @@
 import {env} from 'cloudflare:workers';
 import {identity,notebookCookie,notebookOwner,sameOrigin} from '@/lib/notebook-session';
-export async function GET(req:Request){const {token,headers}=await identity(req);return Response.json(new URL(req.url).searchParams.has('recovery')?{code:token}:{ready:true},{headers});}
+export async function GET(req:Request){const {token,owner,headers}=await identity(req);return Response.json(new URL(req.url).searchParams.has('recovery')?{code:token}:{ready:true,owner},{headers});}
 export async function POST(req:Request){try{sameOrigin(req);const raw=await req.text();if(raw.length>200)throw new Error('恢复码格式无效');const {code}=JSON.parse(raw);if(typeof code!=='string'||!/^[a-f0-9]{64}$/.test(code))throw new Error('恢复码应为 64 位字母数字');const owner=await notebookOwner(code);const found=await env.DB.prepare('SELECT id FROM notes WHERE owner=? LIMIT 1').bind(owner).first();if(!found)throw new Error('这个恢复码未找到已保存的笔记，请核对');return Response.json({ok:true},{headers:{'Cache-Control':'no-store','Set-Cookie':notebookCookie(code)}});}catch(e){return Response.json({error:(e as Error).message},{status:400});}}
