@@ -23,3 +23,12 @@ Mozilla Readability, DOMPurify, React, Lucide and remaining npm dependencies ret
 
 - Electron and electron-builder: desktop runtime and installer tools, original project licenses apply. Capacitor: Android runtime and native HTTP bridge. No remote Node integration is enabled.
 - RSSHub remains a separate, user-started Docker / Termux service; this reader does not bundle RSSHub server source or claim all routes work. Official instance data is read from RSSNext/rsshub-docs `.vitepress/theme/components/InstanceList.vue`. Additional Kael instance source: https://github.com/dreamingms/kael-public-services (announced expiry 2026-12-31).
+
+
+## Subscription discovery metadata
+
+The platform names, hostnames and category facts in `lib/discovery-data.json` are derived from the public RSSNext/Folo `apps/landing/public/discover-sources.json` catalog, retrieved 2026-09-10. No Folo application code or UI was copied. Folo repository: https://github.com/RSSNext/Folo (AGPL-3.0 with its stated exception). This is a static public directory, not Folo private subscriptions, a live popularity ranking, or an affiliation with Folo. Adult-content entries are omitted.
+
+Declarative RSSHub route paths, parameter descriptions and capability metadata were extracted without executing source from https://github.com/DIYgod/RSSHub (2026-09-10 snapshot). RSSHub is MIT licensed; see `vendor/rsshub-LICENSE`. Extraction script: `scripts/import-discovery.mjs`. Computed route definitions that cannot be statically extracted link to official source documentation rather than invented paths.
+
+Nature journal RSS belongs to Nature Portfolio. The Lancet official RSS may reject automated access. The separately labeled Crossref feed supplies publication metadata and DOI links only, not full text and not a publisher-operated RSS feed.

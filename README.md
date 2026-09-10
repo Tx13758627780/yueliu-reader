@@ -207,3 +207,12 @@ node scripts/setup-android-signing.mjs
 脚本会在个人目录的 `.yueliu-signing` 中创建密钥和配置备份，通过 GitHub CLI 将配置写入本仓库的 Actions Secret。它不会把密钥写到源码目录，也不会打印密码；若仓库已有该 Secret，它会停止以免覆盖既有签名。请安全备份整个 `.yueliu-signing` 目录，不要提交到公开仓库。若已有历史正式签名密钥，请使用原来的备份，不要生成新的。
 
 配置完成后发布一个更高版本的新 APK。签名不同的旧测试版需要一次备份迁移，此后各版保持同一固定签名即可覆盖更新。
+
+
+### 扩展订阅目录
+
+「添加订阅 → 订阅目录」可切换 66 个精选 RSS 与 Folo 平台目录。公开快照含 1501 个平台和 2750 个可配置路由（非实时排行榜）；262 个平台未能静态提取路由，只提供官方资料入口。可搜索名称、域名、内容并按分类浏览。选中平台后填写作者 / 频道 / 栏目，再用当前 RSSHub 实例订阅或切换实例检测。
+
+Nature 主刊与系列期刊提供官方 RSS。柳叶刀官方 RSS 可能超时或拒绝抓取，另提供明确标注的 Crossref 论文题录源，包含标题、作者、出版日期与 DOI，不提供付费全文。Android 对 Crossref 的解析也在客户端实现，可兼容尚未更新的阅读服务。
+
+数据来源及许可见 THIRD_PARTY.md。重新生成目录：将 Folo 的公开 discover-sources.json 与 RSSHub 的 lib/routes 源码下载到本地，再运行 `node scripts/import-discovery.mjs <folo-json> <rsshub-lib-routes-directory>`；脚本仅解析声明，不执行上游代码。
