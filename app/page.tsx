@@ -1,5 +1,6 @@
 'use client';
 import {useEffect,useState,useRef} from 'react';
+import {useAndroidBack} from '@/lib/use-android-back';
 import {OfflineSettings} from '@/components/offline-settings';
 import {saveArticleOffline} from '@/lib/offline';
 import {FreeNotes} from '@/components/free-notes';
@@ -55,6 +56,15 @@ export default function Home(){
  useEffect(()=>{if(ready)try{localStorage.setItem('yueliu-reading',JSON.stringify({hubBase,autoFull}));}catch{toast.error('阅读设置保存失败');}},[ready,hubBase,autoFull]);
  useEffect(()=>{setShowRss(false);const a=articles.find(a=>a.id===active);setReadingMode(reference&&(reference.article||reference.id)===(a?.url||a?.id)?reference.view||'original':'original');},[active]);
  useEffect(()=>()=>aiAbort.current?.abort(),[]);
+ useAndroidBack(true,()=>{
+  if(!ready)return true;
+  if(immersive){setImmersive(false);if(document.fullscreenElement)void document.exitFullscreen().catch(()=>{});return true;}
+  if(surface==='notes'){setSurface('reader');return true;}
+  if(mobileRead){setMobileRead(false);return true;}
+  if(search){setSearch('');return true;}
+  if(view!=='all'||tab!=='all'||contentType!=='all'){setView('all');setTab('all');setContentType('all');return true;}
+  return !window.dispatchEvent(new Event('reader-before-navigate',{cancelable:true}));
+ },0);
  const article=articles.find(x=>x.id===active);const filtered=articles.filter(a=>(contentType==='all'||((feeds.find(f=>f.id===a.feed)?.view&&feeds.find(f=>f.id===a.feed)?.view!=='auto'?feeds.find(f=>f.id===a.feed)?.view:a.type)||'article')===contentType)&&(view==='all'||view==='star'&&a.star||view===a.feed)&&(tab!=='unread'||!a.read)&&(!search||(a.title+' '+(a.fullBody||a.body)).toLowerCase().includes(search.toLowerCase())));
  const title=view==='all'?'全部文章':view==='star'?'我的收藏':feeds.find(x=>x.id===view)?.name||'全部文章';
  const update=(id:string,p:Partial<Article>)=>setArticles(old=>old.map(a=>a.id===id?{...a,...p}:a));

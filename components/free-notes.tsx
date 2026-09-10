@@ -1,5 +1,6 @@
 'use client';
 import {useEffect,useRef,useState} from 'react';
+import {useAndroidBack} from '@/lib/use-android-back';
 import {Plus,ArrowLeft,MousePointer2,PenLine,Eraser,Link2,Type,Search,ZoomIn,ZoomOut,Maximize,Trash2,Undo2,Redo2,NotebookPen,GripHorizontal} from 'lucide-react';
 import {Dialog,DialogContent,DialogTitle,DialogDescription} from '@/components/ui/dialog';
 import {Tabs,TabsList,TabsTrigger} from '@/components/ui/tabs';
@@ -23,6 +24,13 @@ export function FreeNotes({articles,initial,onBack}:{articles:Article[];initial?
  useEffect(()=>{mounted.current=true;void load();return()=>{mounted.current=false;};},[]);
  useEffect(()=>{if(initial){const b=boards.find(b=>b.id===initial.id);if(b)openBoard(b,initial.block);}},[initial]);
  useEffect(()=>{function leave(e:BeforeUnloadEvent){if(pending.current.size||saveState==='正在保存…'){e.preventDefault();e.returnValue='';}}window.addEventListener('beforeunload',leave);return()=>window.removeEventListener('beforeunload',leave);},[saveState]);
+ useAndroidBack(!!board,()=>{
+  if(pointer.current||pending.current.size||saveState==='正在保存…'){toast.message('笔记正在保存，请稍后返回');return true;}
+  if(error){toast.error('笔记尚未保存，请先处理保存错误');return true;}
+  if(document.fullscreenElement){void document.exitFullscreen().catch(()=>{});return true;}
+  if(selected){setSelected('');setLineStart('');return true;}
+  setBoard(null);void load();return true;
+ },20);
  function fit(b:Board){const el=viewport.current;setZoom(Math.max(.1,Math.min(1,(el?.clientWidth||window.innerWidth-70)/b.width*.9)));}
  function openBoard(b:Board,block?:string){setBoard(b);current.current=b;setSelected(block||'');setHistory([]);setFuture([]);setSaveState('');setTimeout(()=>{fit(b);if(block)document.getElementById('block-'+block)?.scrollIntoView({block:'center',inline:'center'});},30);}
  function addNode(text='',ref?:ReaderReference){const b=current.current;if(!b)return;const v=viewport.current,w=Math.min(300,b.width-40),h=190,x=Math.min(b.width-w-20,Math.max(20,(v?.scrollLeft||0)/zoom+50)),y=Math.min(b.height-h-20,Math.max(20,(v?.scrollTop||0)/zoom+50));const n={id:crypto.randomUUID(),x,y,w,h,text,ref};edit({...b,nodes:[...b.nodes,n]});setSelected(n.id);setTool('select');}

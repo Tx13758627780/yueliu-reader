@@ -5,11 +5,16 @@ import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from "lucide-react"
 import { Select as SelectPrimitive } from "radix-ui"
 
 import { cn } from "@/lib/utils"
+import { useAndroidBack } from "@/lib/use-android-back"
 
 function Select({
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Root>) {
-  return <SelectPrimitive.Root data-slot="select" {...props} />
+  const [internalOpen, setInternalOpen] = React.useState(props.defaultOpen ?? false)
+  const open = props.open ?? internalOpen
+  const changeOpen = (value: boolean) => { setInternalOpen(value); props.onOpenChange?.(value) }
+  useAndroidBack(open, () => { changeOpen(false); return true }, 110)
+  return <SelectPrimitive.Root data-slot="select" {...props} open={open} onOpenChange={changeOpen} />
 }
 
 function SelectGroup({

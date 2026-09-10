@@ -5,9 +5,14 @@ import { XIcon } from "lucide-react"
 import { Dialog as SheetPrimitive } from "radix-ui"
 
 import { cn } from "@/lib/utils"
+import { useAndroidBack } from "@/lib/use-android-back"
 
 function Sheet({ ...props }: React.ComponentProps<typeof SheetPrimitive.Root>) {
-  return <SheetPrimitive.Root data-slot="sheet" {...props} />
+  const [internalOpen, setInternalOpen] = React.useState(props.defaultOpen ?? false)
+  const open = props.open ?? internalOpen
+  const changeOpen = (value: boolean) => { setInternalOpen(value); props.onOpenChange?.(value) }
+  useAndroidBack(open, () => { changeOpen(false); return true }, 100)
+  return <SheetPrimitive.Root data-slot="sheet" {...props} open={open} onOpenChange={changeOpen} />
 }
 
 function SheetTrigger({

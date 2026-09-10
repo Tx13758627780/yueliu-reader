@@ -5,7 +5,7 @@ function run(args){const r=spawnSync(cmd,args,{cwd:'native',stdio:'inherit',shel
 if(!existsSync('native/android'))run(['cap','add','android']);
 const java='native/android/app/src/main/java/app/yueliu/reader';
 mkdirSync(java,{recursive:true});
-for(const file of ['MainActivity.java','YueliuFilesPlugin.java'])copyFileSync('native/android-src/'+file,java+'/'+file);
+for(const file of ['MainActivity.java','YueliuFilesPlugin.java','BackExitGate.java'])copyFileSync('native/android-src/'+file,java+'/'+file);
 const gradle='native/android/app/build.gradle',version=JSON.parse(readFileSync('native/package.json','utf8')).version;
 const [major,minor,patch]=version.split('.').map(Number),code=major*1000000+minor*1000+patch;
 if(!/^\d+\.\d+\.\d+$/.test(version)||code<1||code>2100000000)throw new Error('无效客户端版本');

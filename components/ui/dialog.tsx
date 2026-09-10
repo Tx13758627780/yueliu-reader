@@ -5,12 +5,17 @@ import { XIcon } from "lucide-react"
 import { Dialog as DialogPrimitive } from "radix-ui"
 
 import { cn } from "@/lib/utils"
+import { useAndroidBack } from "@/lib/use-android-back"
 import { Button } from "@/components/ui/button"
 
 function Dialog({
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Root>) {
-  return <DialogPrimitive.Root data-slot="dialog" {...props} />
+  const [internalOpen, setInternalOpen] = React.useState(props.defaultOpen ?? false)
+  const open = props.open ?? internalOpen
+  const changeOpen = (value: boolean) => { setInternalOpen(value); props.onOpenChange?.(value) }
+  useAndroidBack(open, () => { changeOpen(false); return true }, 100)
+  return <DialogPrimitive.Root data-slot="dialog" {...props} open={open} onOpenChange={changeOpen} />
 }
 
 function DialogTrigger({
