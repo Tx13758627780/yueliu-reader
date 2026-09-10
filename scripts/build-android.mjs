@@ -1,6 +1,7 @@
 import {spawnSync} from 'node:child_process';
 import {readFileSync,writeFileSync,mkdirSync,rmSync,copyFileSync,readdirSync} from 'node:fs';
 import path from 'node:path';
+if(!process.env.ANDROID_SIGNING_JSON)throw new Error('缺少固定 Android 签名。请先运行 node scripts/setup-android-signing.mjs 配置仓库密钥；已停止打包，避免发布无法覆盖更新的 APK。');
 const gradleFile='native/android/app/build.gradle',original=readFileSync(gradleFile,'utf8');
 const storePath=path.resolve('.sites-runtime/android-update-signing.keystore');
 let env={...process.env},signed=false;

@@ -189,3 +189,21 @@ keytool -genkeypair -keystore yueliu-release.p12 -storetype PKCS12 -alias yueliu
 ```
 
 妥善备份密钥库和密码，不要把它们提交到源码仓库。配置后工作流自动生成固定签名的 release APK；没有 secret 时仍生成 debug 测试 APK，明确提示可能无法跨构建覆盖升级。临时密钥文件在构建后删除。第一次从旧测试签名迁移到固定签名时，仍需先完整备份并确认备份可用，再迁移安装；此后保持同一签名才能保留本机数据覆盖升级。
+
+
+### 修复 Android 覆盖安装冲突（维护者一次性操作）
+
+v0.2.3 与 v0.2.5 实际使用了不同的临时测试签名，不能相互覆盖。新建固定签名不能恢复旧签名，也不能直接保留数据覆盖这些旧测试版。先在旧版导出笔记备份并确认文件存在；固定签名版发布前不要卸载旧版。
+
+当前打包流程在缺少 `ANDROID_SIGNING_JSON` 时会停止，不再自动发布随机签名的测试 APK。
+
+在你自己的电脑安装 Node.js、Java JDK 和 GitHub CLI，下载本仓库源码，在源码目录运行：
+
+```sh
+gh auth login
+node scripts/setup-android-signing.mjs
+```
+
+脚本会在个人目录的 `.yueliu-signing` 中创建密钥和配置备份，通过 GitHub CLI 将配置写入本仓库的 Actions Secret。它不会把密钥写到源码目录，也不会打印密码；若仓库已有该 Secret，它会停止以免覆盖既有签名。请安全备份整个 `.yueliu-signing` 目录，不要提交到公开仓库。若已有历史正式签名密钥，请使用原来的备份，不要生成新的。
+
+配置完成后发布一个更高版本的新 APK。签名不同的旧测试版需要一次备份迁移，此后各版保持同一固定签名即可覆盖更新。
