@@ -5,3 +5,13 @@ export async function localGet<T>(store:string,key:string):Promise<T|undefined>{
 export async function localAll<T>(store:string):Promise<T[]>{const db=await database();return new Promise((resolve,reject)=>{const r=db.transaction(store).objectStore(store).getAll();r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});}
 export async function localPut(store:string,key:string,value:unknown){const db=await database();return new Promise<void>((resolve,reject)=>{const tx=db.transaction(store,'readwrite');tx.objectStore(store).put(value,key);tx.oncomplete=()=>resolve();tx.onabort=tx.onerror=()=>reject(tx.error||new Error('本机存储写入失败'));});}
 export async function localClear(store:string){const db=await database();return new Promise<void>((resolve,reject)=>{const tx=db.transaction(store,'readwrite');tx.objectStore(store).clear();tx.oncomplete=()=>resolve();tx.onabort=tx.onerror=()=>reject(tx.error);});}
+export type LocalWrite={store:'notes'|'meta';key:string;value:unknown};
+export async function localWriteBatch(writes:LocalWrite[]){
+ if(!writes.length)return;
+ const db=await database();
+ return new Promise<void>((resolve,reject)=>{
+  const tx=db.transaction([...new Set(writes.map(w=>w.store))],'readwrite');
+  tx.oncomplete=()=>resolve();tx.onabort=tx.onerror=()=>reject(tx.error||new Error('导入未完成，原有数据已保留'));
+  try{for(const row of writes)tx.objectStore(row.store).put(row.value,row.key);}catch(e){tx.abort();reject(e);}
+ });
+}
