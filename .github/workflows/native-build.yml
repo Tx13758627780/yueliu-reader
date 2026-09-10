@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths: ['app/**', 'components/**', 'lib/**', 'public/**', 'native/**', 'scripts/build-offline.mjs', 'scripts/build-desktop-api.mjs', 'scripts/prepare-android.mjs', 'scripts/publish-clients.mjs', 'vite.offline.config.ts', 'tests/reader-back.test.mjs', 'package*.json', '.github/workflows/native-build.yml']
+    paths: ['app/**', 'components/**', 'lib/**', 'public/**', 'native/**', 'scripts/build-offline.mjs', 'scripts/build-desktop-api.mjs', 'scripts/prepare-android.mjs', 'scripts/build-android.mjs', 'tests/reader-updater.test.mjs', 'scripts/publish-clients.mjs', 'vite.offline.config.ts', 'tests/reader-back.test.mjs', 'package*.json', '.github/workflows/native-build.yml']
 permissions:
   contents: read
 jobs:
@@ -43,16 +43,17 @@ jobs:
       - uses: android-actions/setup-android@v3
       - run: npm ci
       - name: Validate Android back navigation and exit timing
-        run: node --test tests/reader-back.test.mjs
+        run: node --test tests/reader-back.test.mjs tests/reader-updater.test.mjs
       - run: npm ci --prefix native --ignore-scripts
       - run: npm run android:prepare
-      - name: Build installable debug APK
-        working-directory: native/android
-        run: chmod +x gradlew && ./gradlew assembleDebug --no-daemon
+      - name: Build installable APK
+        run: node scripts/build-android.mjs
+        env:
+          ANDROID_SIGNING_JSON: ${{ secrets.ANDROID_SIGNING_JSON }}
       - uses: actions/upload-artifact@v4
         with:
           name: Yueliu-Android-APK
-          path: native/android/app/build/outputs/apk/debug/*.apk
+          path: native/releases/yueliu-android.apk
           if-no-files-found: error
           retention-days: 90
 

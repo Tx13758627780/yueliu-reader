@@ -162,3 +162,30 @@ cd native/android
 Windows 客户端中，在 RSSHub 页面展开「把这台设备变成 RSSHub 实例」。先安装并启动 Docker Desktop，然后点「一键启用本机实例」。应用启动独立的 `diygod/rsshub:chromium-bundled` 容器，使用固定的应用标签识别自己创建的容器，不会覆盖其他同名容器。默认仅绑定 `127.0.0.1:1200`，不会自动将设备公开到互联网；可停止或重新使用。
 
 网页版提供 Windows 和 Linux / macOS 启动脚本。Android 提供 Termux 安装脚本（需要网络与 Node 环境，受 RSSHub 上游依赖兼容性影响，不包含 Chromium）；APK 不内嵌 RSSHub 后台进程。云端服务无法访问用户设备的 localhost。Android 的原生客户端支持连接同机 `http://127.0.0.1:1200`；远程 / 跨设备实例需自行配置公网 HTTPS 地址。需要登录、Cookie 或浏览器的路由仍需在 RSSHub 端配置。
+
+## Android 应用内更新
+
+在「离线与客户端」检查更新，Android 可直接下载新版、查看进度、取消或重试，完成后点击「继续安装」。首次安装需在系统中允许阅流安装应用；授权后回到阅流再次点击安装。系统安装器负责最后确认。下载由 Android 管理，关掉更新窗口后仍可继续，重新打开会恢复状态。
+
+安装前检查固定 GitHub 仓库下载地址、文件长度、GitHub 提供的 SHA-256、包名、递增版本和签名。签名不同会阻止覆盖升级并保留原应用，不自动卸载或清空笔记。目前不支持签名轮换，只接受相同签名证书。
+
+### 配置固定签名（保留数据覆盖更新必需）
+
+维护者在 GitHub 仓库 Settings → Secrets and variables → Actions 添加一个名为 `ANDROID_SIGNING_JSON` 的 Repository secret，内容为：
+
+```json
+{
+  "keystore": "签名 keystore 文件的 Base64 内容",
+  "alias": "yueliu",
+  "storePassword": "密钥库密码",
+  "keyPassword": "签名密钥密码"
+}
+```
+
+如果已有签名密钥，必须一直使用原来的密钥。没有时可用 JDK 自带的 keytool 创建 PKCS12 密钥库：
+
+```bash
+keytool -genkeypair -keystore yueliu-release.p12 -storetype PKCS12 -alias yueliu -keyalg RSA -keysize 3072 -validity 10000
+```
+
+妥善备份密钥库和密码，不要把它们提交到源码仓库。配置后工作流自动生成固定签名的 release APK；没有 secret 时仍生成 debug 测试 APK，明确提示可能无法跨构建覆盖升级。临时密钥文件在构建后删除。第一次从旧测试签名迁移到固定签名时，仍需先完整备份并确认备份可用，再迁移安装；此后保持同一签名才能保留本机数据覆盖升级。

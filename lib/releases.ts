@@ -1,7 +1,13 @@
 export const REPOSITORY='Tx13758627780/yueliu-reader';
 export const RELEASES_URL=`https://github.com/${REPOSITORY}/releases`;
-export type Installer={kind:'setup'|'portable'|'android';name:string;url:string;size:number};
-export type ClientRelease={version:string;tag:string;url:string;published:string;preview:boolean;files:Installer[]};
+export type Installer={kind:'setup'|'portable'|'android';name:string;url:string;size:number;sha256?:string};
+export type ClientRelease={version:string;tag:string;url:string;published:string;preview:boolean;files:Installer[];notes?:string};
+export function isNewerVersion(candidate:string,current:string){
+ if(!/^\d+\.\d+\.\d+$/.test(candidate)||!/^\d+\.\d+\.\d+$/.test(current))return false;
+ const a=candidate.split('.').map(Number),b=current.split('.').map(Number);
+ for(let i=0;i<3;i++)if(a[i]!==b[i])return a[i]>b[i];
+ return false;
+}
 
 export function selectClientRelease(data:unknown):ClientRelease|null{
  if(!Array.isArray(data))return null;
@@ -11,9 +17,9 @@ export function selectClientRelease(data:unknown):ClientRelease|null{
   for(const [kind,name] of [['setup',`Yueliu-Reader-${version}-x64-setup.exe`],['portable',`Yueliu-Reader-${version}-x64-portable.exe`],['android',`Yueliu-Reader-${version}-android.apk`]] as const){
    const asset=release.assets.find((a:any)=>a.name===name&&a.state==='uploaded'&&Number.isFinite(a.size)&&a.size>0);
    const url=`https://github.com/${REPOSITORY}/releases/download/${release.tag_name}/${name}`;
-   if(asset?.browser_download_url===url)files.push({kind,name,url,size:asset.size});
+   if(asset?.browser_download_url===url)files.push({kind,name,url,size:asset.size,...(/^sha256:[a-f0-9]{64}$/i.test(asset.digest||'')?{sha256:asset.digest.slice(7)}:{})});
   }
-  if(files.length===3)return {version,tag:release.tag_name,url:`${RELEASES_URL}/tag/${release.tag_name}`,published:typeof release.published_at==='string'?release.published_at:'',preview:!!release.prerelease,files};
+  if(files.length===3)return {version,tag:release.tag_name,url:`${RELEASES_URL}/tag/${release.tag_name}`,published:typeof release.published_at==='string'?release.published_at:'',preview:!!release.prerelease,files,notes:typeof release.body==='string'?release.body.slice(0,3000):''};
  }
  return null;
 }

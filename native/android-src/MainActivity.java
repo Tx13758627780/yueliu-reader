@@ -17,6 +17,7 @@ public class MainActivity extends BridgeActivity {
     private Toast exitToast;
     @Override public void onCreate(Bundle savedInstanceState) {
         registerPlugin(YueliuFilesPlugin.class);
+        registerPlugin(YueliuUpdaterPlugin.class);
         super.onCreate(savedInstanceState);
         // Keep the entire WebView (including dialogs) clear of system controls.
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
