@@ -14,7 +14,7 @@ function literal(n){
  if(ts.isObjectLiteralExpression(n))return Object.fromEntries(n.properties.filter(ts.isPropertyAssignment).map(p=>[p.name?.text,literal(p.initializer)]));
  if(ts.isAsExpression(n)||ts.isSatisfiesExpression(n))return literal(n.expression);
 }
-function files(dir){return readdirSync(dir,{withFileTypes:true}).flatMap(d=>d.isDirectory()?files(path.join(dir,d.name)):d.name.endsWith('.ts')&&!d.name.endsWith('.test.ts')?[path.join(dir,d.name)]:[]);}
+function files(dir){return readdirSync(dir,{withFileTypes:true}).flatMap(d=>d.isDirectory()?files(path.join(dir,d.name)):/\.tsx?$/.test(d.name)&&!(/\.(test|spec)\.tsx?$/.test(d.name))?[path.join(dir,d.name)]:[]);}
 function clean(s,n=160){return String(s||'').replace(/<[^>]*>/g,'').replace(/\s+/g,' ').trim().slice(0,n);}
 const platforms=[];let excluded=0;
 for(const p of JSON.parse(readFileSync(foloFile,'utf8'))){

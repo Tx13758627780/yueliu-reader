@@ -43,7 +43,7 @@ jobs:
       - uses: android-actions/setup-android@v3
       - run: npm ci
       - name: Validate Android back navigation and exit timing
-        run: node --test tests/reader-back.test.mjs tests/reader-updater.test.mjs
+        run: node --test tests/reader-back.test.mjs tests/reader-updater.test.mjs tests/reader-discovery.test.mjs tests/reader-bili-api.test.mjs tests/reader-workspace.test.mjs
       - run: npm ci --prefix native --ignore-scripts
       - run: npm run android:prepare
       - name: Build installable APK
